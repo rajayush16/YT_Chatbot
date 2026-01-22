@@ -1,7 +1,7 @@
 import streamlit as st
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.docstore.document import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint, ChatHuggingFace
 from langchain_core.prompts import PromptTemplate
@@ -9,7 +9,6 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda
 import os
 from dotenv import load_dotenv
-from langchain_huggingface import HuggingFaceEndpoint,ChatHuggingFace
 load_dotenv()
 
 # --- Streamlit App Title ---
@@ -22,6 +21,10 @@ question = st.text_input("❓ Enter your question")
 # --- If both inputs are provided ---
 if video_id and question:
     try:
+        if not os.getenv("HUGGINGFACEHUB_API_TOKEN"):
+            st.error("Missing HUGGINGFACEHUB_API_TOKEN. Add it to Streamlit Secrets or .env.")
+            st.stop()
+
         # Step 1: Fetch transcript
         transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=["en"])
         transcript = " ".join(chunk["text"] for chunk in transcript_list)
